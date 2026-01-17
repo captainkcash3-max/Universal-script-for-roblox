@@ -280,11 +280,11 @@ function IsEnemy(player)
     return player.Team ~= LocalPlayer.Team
 end
 
-for _, plr in ipairs(Players:GetPlayers()) do
-    if plr ~= LocalPlayer and IsEnemy(plr) then
-        -- SHOW this player (enemy)
-
-        createESP(plr
+for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+    if plr ~= game.Players.LocalPlayer and IsEnemy(plr) then
+        createESP(plr)
+    end
+end
 
 
 PlayerTab:CreateSlider({
