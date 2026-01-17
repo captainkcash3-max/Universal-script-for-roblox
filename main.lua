@@ -39,7 +39,7 @@ local MainTab = Window:CreateTab("Main", 4483362458)
 local RandomTab = Window:CreateTab("Random", 4483362458)
 local TimeTab = Window:CreateTab("Time Perception", 4483362458)
 local PlayerTab = Window:CreateTab("Player", 4483362458)
-local ESPTab = Window:CreateTab("ESP", 4483362458)
+local NothingTab = Window:CreateTab("Nothing", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
 local function startFly()
@@ -127,8 +127,48 @@ local function stopBulletTime()
     end
     workspace.CurrentCamera.FieldOfView = normalFOV
 end
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-MainTab:CreateSlider({
+local player = Players.LocalPlayer
+local connection
+
+local function setCharacterNoclip(state)
+    local character = player.Character
+    if not character then return end
+
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not state
+        end
+    end
+end
+
+local function enableNoclip()
+    if connection then return end
+    connection = RunService.Stepped:Connect(function()
+        setCharacterNoclip(true)
+    end)
+end
+
+local function disableNoclip()
+    if connection then
+        connection:Disconnect()
+        connection = nil
+    end
+    setCharacterNoclip(false)
+end
+
+function ToggleNoclip(state)
+    if state then
+        enableNoclip()
+    else
+        disableNoclip()
+    end
+end
+
+
+PlayerTab:CreateSlider({
     Name = "WalkSpeed",
     Range = {16, 200},
     Increment = 1,
@@ -142,7 +182,15 @@ MainTab:CreateSlider({
     end
 })
 
-MainTab:CreateSlider({
+PlayerTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleNoclip(Value)
+    end
+})
+
+PlayerTab:CreateSlider({
     Name = "JumpPower",
     Range = {50, 300},
     Increment = 5,
@@ -156,7 +204,7 @@ MainTab:CreateSlider({
     end
 })
 
-MainTab:CreateToggle({
+PlayerTab:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
     Callback = function(Value)
@@ -164,7 +212,7 @@ MainTab:CreateToggle({
     end
 })
 
-RandomTab:CreateToggle({
+PlayerTab:CreateToggle({
     Name = "Fly",
     CurrentValue = false,
     Callback = function(Value)
@@ -224,7 +272,7 @@ local function removeESP(player)
     end
 end
 
-ESPTab:CreateToggle({
+PlayerTab:CreateToggle({
     Name = "Player ESP (Boxes)",
     CurrentValue = false,
     Callback = function(Value)
