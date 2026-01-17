@@ -20,21 +20,28 @@ local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local camera = workspace.CurrentCamera
 
+-- Movement / Fly
 local flying = false
 local flySpeed = 50
 local bodyGyro, bodyVelocity
 local flyConnection
 
+-- Bullet Time
 local bulletTime = false
 local bulletSpeed = 0.3
-local normalFOV = workspace.CurrentCamera.FieldOfView
+local normalFOV = camera.FieldOfView
 local bulletFOV = 80
 local originalAnimationSpeeds = {}
 local soundPitchConnections = {}
+
+-- Inf Jump
 local infJump = false
+
+-- ESP
 local espEnabled = false
 local espBoxes = {}
 
+-- Tabs
 local MainTab = Window:CreateTab("Main", 4483362458)
 local RandomTab = Window:CreateTab("Random", 4483362458)
 local TimeTab = Window:CreateTab("Time Perception", 4483362458)
@@ -42,6 +49,7 @@ local PlayerTab = Window:CreateTab("Player", 4483362458)
 local NothingTab = Window:CreateTab("Nothing", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
+-- Fly Functions
 local function startFly()
     local char = LocalPlayer.Character
     if not char then return end
@@ -83,6 +91,7 @@ local function stopFly()
     if flyConnection then flyConnection:Disconnect() flyConnection = nil end
 end
 
+-- Bullet Time Functions
 local function startBulletTime()
     bulletTime = true
     if LocalPlayer.Character then
@@ -104,366 +113,4 @@ local function startBulletTime()
         end
     end
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = LocalPlayer.Character.Humanoid.WalkSpeed * bulletSpeed
-        LocalPlayer.Character.Humanoid.JumpPower = LocalPlayer.Character.Humanoid.JumpPower * bulletSpeed
-    end
-    workspace.CurrentCamera.FieldOfView = bulletFOV
-end
-
-local function stopBulletTime()
-    bulletTime = false
-    for anim, speed in pairs(originalAnimationSpeeds) do
-        if anim then anim:AdjustSpeed(speed) end
-    end
-    originalAnimationSpeeds = {}
-    for sound, conn in pairs(soundPitchConnections) do
-        if conn then conn:Disconnect() end
-        if sound then sound.PlaybackSpeed = 1 end
-    end
-    soundPitchConnections = {}
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = 16
-        LocalPlayer.Character.Humanoid.JumpPower = 50
-    end
-    workspace.CurrentCamera.FieldOfView = normalFOV
-end
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local player = Players.LocalPlayer
-local connection
-
-local function setCharacterNoclip(state)
-    local character = player.Character
-    if not character then return end
-
-    for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = not state
-        end
-    end
-end
-
-local function enableNoclip()
-    if connection then return end
-    connection = RunService.Stepped:Connect(function()
-        setCharacterNoclip(true)
-    end)
-end
-
-local function disableNoclip()
-    if connection then
-        connection:Disconnect()
-        connection = nil
-    end
-    setCharacterNoclip(false)
-end
-
-function ToggleNoclip(state)
-    if state then
-        enableNoclip()
-    else
-        disableNoclip()
-    end
-end
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local godmode = false
-local healthConnection
-
-local function applyGodmode(character)
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return end
-
-    humanoid.MaxHealth = math.huge
-    humanoid.Health = humanoid.MaxHealth
-
-    if healthConnection then
-        healthConnection:Disconnect()
-    end
-
-    healthConnection = humanoid.HealthChanged:Connect(function()
-        if godmode then
-            humanoid.Health = humanoid.MaxHealth
-        end
-    end)
-end
-
-local function enableGodmode()
-    godmode = true
-
-    if player.Character then
-        applyGodmode(player.Character)
-    end
-end
-
-local function disableGodmode()
-    godmode = false
-
-    if healthConnection then
-        healthConnection:Disconnect()
-        healthConnection = nil
-    end
-
-    local char = player.Character
-    if char then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.MaxHealth = 100
-            hum.Health = hum.MaxHealth
-        end
-    end
-end
-local ff = Instance.new("ForceField")
-ff.Visible = false
-ff.Parent = character
-
-
-function ToggleGodmode(state)
-    if state then
-        enableGodmode()
-    else
-        disableGodmode()
-    end
-end
-
-player.CharacterAdded:Connect(function(char)
-    if godmode then
-        task.wait(0.5)
-        applyGodmode(char)
-    end
-end)
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
-
-local skipEnabled = false
-
-function SkipCutsceneNow()
-    -- Unlock camera
-    camera.CameraType = Enum.CameraType.Custom
-
-    -- Remove cutscene GUIs
-    for _, gui in ipairs(player.PlayerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Name:lower():find("cutscene") then
-            gui:Destroy()
-        end
-    end
-
-    -- Stop animations
-    if player.Character then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
-                track:Stop()
-            end
-        end
-    end
-end
-
-function ToggleCutsceneSkip(state)
-    skipEnabled = state
-    if state then
-        SkipCutsceneNow()
-    end
-end
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-function IsEnemy(player)
-    if not player then return false end
-    if not LocalPlayer.Team or not player.Team then
-        return true -- if teams don't exist, treat as enemy
-    end
-    return player.Team ~= LocalPlayer.Team
-end
-
-for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
-    if plr ~= game.Players.LocalPlayer and IsEnemy(plr) then
-        createESP(plr)
-    end
-end
-
-
-PlayerTab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 200},
-    Increment = 1,
-    CurrentValue = 16,
-    Callback = function(Value)
-        pcall(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.WalkSpeed = Value
-            end
-        end)
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Skip Cutscenes",
-    CurrentValue = false,
-    Callback = function(Value)
-        ToggleCutsceneSkip(Value)
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Godmode",
-    CurrentValue = false,
-    Callback = function(Value)
-        ToggleGodmode(Value)
-    end
-})
-
-PlayerTab:CreateToggle({
-    Name = "Noclip",
-    CurrentValue = false,
-    Callback = function(Value)
-        ToggleNoclip(Value)
-    end
-})
-
-PlayerTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 300},
-    Increment = 5,
-    CurrentValue = 50,
-    Callback = function(Value)
-        pcall(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.JumpPower = Value
-            end
-        end)
-    end
-})
-
-PlayerTab:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Callback = function(Value)
-        infJump = Value
-    end
-})
-
-PlayerTab:CreateToggle({
-    Name = "Fly",
-    CurrentValue = false,
-    Callback = function(Value)
-        if Value then startFly() else stopFly() end
-    end
-})
-
-TimeTab:CreateToggle({
-    Name = "Bullet Time",
-    CurrentValue = false,
-    Callback = function(Value)
-        if Value then startBulletTime() else stopBulletTime() end
-    end
-})
-
-TimeTab:CreateSlider({
-    Name = "Bullet Time Speed",
-    Range = {0.1, 5},
-    Increment = 0.05,
-    CurrentValue = 0.3,
-    Callback = function(Value)
-        bulletSpeed = Value
-        if bulletTime then stopBulletTime() startBulletTime() end
-    end
-})
-
-PlayerTab:CreateButton({
-    Name = "Rejoin Server",
-    Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
-    end
-})
-
-PlayerTab:CreateButton({
-    Name = "Reset Character",
-    Callback = function()
-        LocalPlayer.Character:BreakJoints()
-    end
-})
-
-local function createESP(player)
-    if not Drawing or player == LocalPlayer then return end
-    local success, box = pcall(function()
-        local b = Drawing.new("Square")
-        b.Thickness = 1
-        b.Filled = false
-        b.Color = Color3.fromRGB(255,0,0)
-        return b
-    end)
-    if success then espBoxes[player] = box end
-end
-
-local function removeESP(player)
-    if espBoxes[player] then
-        pcall(function() espBoxes[player]:Remove() end)
-        espBoxes[player] = nil
-    end
-end
-
-PlayerTab:CreateToggle({
-    Name = "Player ESP (Boxes)",
-    CurrentValue = false,
-    Callback = function(Value)
-        espEnabled = Value
-        if not Value then
-            for _,v in pairs(espBoxes) do
-                pcall(function() v:Remove() end)
-            end
-            table.clear(espBoxes)
-        end
-    end
-})
-
-Players.PlayerAdded:Connect(createESP)
-Players.PlayerRemoving:Connect(removeESP)
-
-RunService.RenderStepped:Connect(function()
-    if not espEnabled or not Drawing then return end
-    for _,player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            if not espBoxes[player] then createESP(player) end
-            local hrp = player.Character.HumanoidRootPart
-            local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
-            local box = espBoxes[player]
-            if onScreen then
-                box.Visible = true
-                box.Size = Vector2.new(50, 70)
-                box.Position = Vector2.new(pos.X - 25, pos.Y - 35)
-            else
-                box.Visible = false
-            end
-        end
-    end
-end)
-
-SettingsTab:CreateButton({
-    Name = "Destroy UI",
-    Callback = function()
-        if Rayfield and Rayfield.Destroy then Rayfield:Destroy() end
-    end
-})
-
-if Rayfield and Rayfield.Notify then
-    Rayfield:Notify({
-        Title = "Loaded!",
-        Content = "Universal Rayfield script loaded successfully.",
-        Duration = 5
-    })
-end
-
-UIS.JumpRequest:Connect(function()
-    if infJump then
-        pcall(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-        end)
-    end
-end)
+        LocalPlayer.Character.Humanoid.WalkSpeed = LocalPlayer.Character.Humano
