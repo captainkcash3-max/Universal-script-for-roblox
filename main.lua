@@ -215,6 +215,10 @@ local function disableGodmode()
         end
     end
 end
+local ff = Instance.new("ForceField")
+ff.Visible = false
+ff.Parent = character
+
 
 function ToggleGodmode(state)
     if state then
