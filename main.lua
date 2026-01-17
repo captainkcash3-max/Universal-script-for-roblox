@@ -23,6 +23,7 @@ local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local camera = workspace.CurrentCamera
 
+-- Create all tabs first
 local MainTab = Window:CreateTab("Main", 4483362458)
 local RandomTab = Window:CreateTab("Random (add anything)", 4483362458)
 local TimeTab = Window:CreateTab("Time Perception", 4483362458)
@@ -30,6 +31,7 @@ local PlayerTab = Window:CreateTab("Player", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
+-- Fly variables
 local flying = false
 local flySpeed = 50
 local bodyGyro, bodyVelocity
@@ -38,26 +40,24 @@ local flyConnection
 local function startFly()
     local char = LocalPlayer.Character
     if not char then return end
-
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
     bodyGyro = Instance.new("BodyGyro")
     bodyGyro.P = 9e4
-    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bodyGyro.MaxTorque = Vector3.new(9e9,9e9,9e9)
     bodyGyro.CFrame = hrp.CFrame
     bodyGyro.Parent = hrp
 
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.Velocity = Vector3.zero
-    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    bodyVelocity.MaxForce = Vector3.new(9e9,9e9,9e9)
     bodyVelocity.Parent = hrp
 
     flying = true
 
     flyConnection = RunService.RenderStepped:Connect(function()
         if not flying or not hrp or not hrp.Parent then return end
-
         local moveDir = Vector3.zero
         if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir += camera.CFrame.LookVector end
         if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir -= camera.CFrame.LookVector end
@@ -79,23 +79,19 @@ local function stopFly()
     flying = false
     if bodyGyro then bodyGyro:Destroy() end
     if bodyVelocity then bodyVelocity:Destroy() end
-    if flyConnection then
-        flyConnection:Disconnect()
-        flyConnection = nil
-    end
+    if flyConnection then flyConnection:Disconnect() flyConnection = nil end
 end
 
+-- Bullet Time variables
 local bulletTime = false
 local bulletSpeed = 0.3
 local normalFOV = workspace.CurrentCamera.FieldOfView
 local bulletFOV = 80
-
 local originalAnimationSpeeds = {}
 local soundPitchConnections = {}
 
 local function startBulletTime()
     bulletTime = true
-
     if LocalPlayer.Character then
         for _, anim in pairs(LocalPlayer.Character:GetDescendants()) do
             if anim:IsA("AnimationTrack") then
@@ -104,7 +100,6 @@ local function startBulletTime()
             end
         end
     end
-
     for _, sound in pairs(workspace:GetDescendants()) do
         if sound:IsA("Sound") then
             local conn
@@ -115,66 +110,54 @@ local function startBulletTime()
             sound.PlaybackSpeed = sound.PlaybackSpeed * bulletSpeed
         end
     end
-
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = LocalPlayer.Character.Humanoid.WalkSpeed * bulletSpeed
-        LocalPlayer.Character.Humanoid.JumpPower = LocalPlayer.Character.Humanoid.JumpPower * bulletSpeed
+        LocalPlayer.Character.Humanoid.WalkSpeed *= bulletSpeed
+        LocalPlayer.Character.Humanoid.JumpPower *= bulletSpeed
     end
-
     workspace.CurrentCamera.FieldOfView = bulletFOV
 end
 
 local function stopBulletTime()
     bulletTime = false
-
     for anim, speed in pairs(originalAnimationSpeeds) do
         if anim then anim:AdjustSpeed(speed) end
     end
     originalAnimationSpeeds = {}
-
     for sound, conn in pairs(soundPitchConnections) do
         if conn then conn:Disconnect() end
         if sound then sound.PlaybackSpeed = 1 end
     end
     soundPitchConnections = {}
-
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = 16
         LocalPlayer.Character.Humanoid.JumpPower = 50
     end
-
     workspace.CurrentCamera.FieldOfView = normalFOV
 end
 
+-- Controls
 TimeTab:CreateToggle({
     Name = "Bullet Time",
     CurrentValue = false,
     Callback = function(Value)
-        if Value then
-            startBulletTime()
-        else
-            stopBulletTime()
-        end
+        if Value then startBulletTime() else stopBulletTime() end
     end
 })
 
 TimeTab:CreateSlider({
     Name = "Bullet Time Speed",
-    Range = {0.1, 1},
+    Range = {0.1,1},
     Increment = 0.05,
     CurrentValue = 0.3,
     Callback = function(Value)
         bulletSpeed = Value
-        if bulletTime then
-            stopBulletTime()
-            startBulletTime()
-        end
+        if bulletTime then stopBulletTime() startBulletTime() end
     end
 })
 
 MainTab:CreateSlider({
     Name = "WalkSpeed",
-    Range = {16, 200},
+    Range = {16,200},
     Increment = 1,
     CurrentValue = 16,
     Callback = function(Value)
@@ -186,21 +169,9 @@ MainTab:CreateSlider({
     end
 })
 
-RandomTab:CreateToggle({
-    Name = "Fly",
-    CurrentValue = false,
-    Callback = function(Value)
-        if Value then
-            startFly()
-        else
-            stopFly()
-        end
-    end
-})
-
 MainTab:CreateSlider({
     Name = "JumpPower",
-    Range = {50, 300},
+    Range = {50,300},
     Increment = 5,
     CurrentValue = 50,
     Callback = function(Value)
@@ -209,6 +180,14 @@ MainTab:CreateSlider({
                 LocalPlayer.Character.Humanoid.JumpPower = Value
             end
         end)
+    end
+})
+
+RandomTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then startFly() else stopFly() end
     end
 })
 
@@ -231,8 +210,7 @@ UIS.JumpRequest:Connect(function()
     end
 end)
 
-local PlayerTab = Window:CreateTab("Player", 4483362458)
-
+-- Player Tab
 PlayerTab:CreateButton({
     Name = "Rejoin Server",
     Callback = function()
@@ -247,8 +225,7 @@ PlayerTab:CreateButton({
     end
 })
 
-local ESPTab = Window:CreateTab("ESP", 4483362458)
-
+-- ESP Tab (safe Drawing)
 local espEnabled = false
 local espBoxes = {}
 
@@ -261,16 +238,12 @@ local function createESP(player)
         b.Color = Color3.fromRGB(255,0,0)
         return b
     end)
-    if success then
-        espBoxes[player] = box
-    end
+    if success then espBoxes[player] = box end
 end
 
 local function removeESP(player)
     if espBoxes[player] then
-        pcall(function()
-            espBoxes[player]:Remove()
-        end)
+        pcall(function() espBoxes[player]:Remove() end)
         espBoxes[player] = nil
     end
 end
@@ -281,34 +254,30 @@ ESPTab:CreateToggle({
     Callback = function(Value)
         espEnabled = Value
         if not Value then
-            for _,v in pairs(espBoxes) do
-                pcall(function() v:Remove() end)
-            end
+            for _,v in pairs(espBoxes) do pcall(function() v:Remove() end) end
             table.clear(espBoxes)
         end
     end
 })
 
-Players.PlayerAdded:Connect(createESP)
+Players.PlayerAdded:Connect(function(player)
+    if espEnabled then createESP(player) end
+end)
+
 Players.PlayerRemoving:Connect(removeESP)
 
 RunService.RenderStepped:Connect(function()
     if not espEnabled or not Drawing then return end
-
     for _,player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            if not espBoxes[player] then
-                createESP(player)
-            end
-
+            if not espBoxes[player] then createESP(player) end
             local hrp = player.Character.HumanoidRootPart
-            local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(hrp.Position)
-
+            local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
             local box = espBoxes[player]
             if onScreen then
                 box.Visible = true
-                box.Size = Vector2.new(50, 70)
-                box.Position = Vector2.new(pos.X - 25, pos.Y - 35)
+                box.Size = Vector2.new(50,70)
+                box.Position = Vector2.new(pos.X-25,pos.Y-35)
             else
                 box.Visible = false
             end
@@ -316,14 +285,11 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-local SettingsTab = Window:CreateTab("Settings", 4483362458)
-
+-- Settings Tab
 SettingsTab:CreateButton({
     Name = "Destroy UI",
     Callback = function()
-        if Rayfield and Rayfield.Destroy then
-            Rayfield:Destroy()
-        end
+        if Rayfield and Rayfield.Destroy then Rayfield:Destroy() end
     end
 })
 
