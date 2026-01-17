@@ -241,21 +241,29 @@ PlayerTab:CreateButton({
 })
 
 local ESPTab = Window:CreateTab("ESP", 4483362458)
+
 local espEnabled = false
 local espBoxes = {}
 
 local function createESP(player)
     if not Drawing or player == LocalPlayer then return end
-    local box = Drawing.new("Square")
-    box.Thickness = 1
-    box.Filled = false
-    box.Color = Color3.fromRGB(255, 0, 0)
-    espBoxes[player] = box
+    local success, box = pcall(function()
+        local b = Drawing.new("Square")
+        b.Thickness = 1
+        b.Filled = false
+        b.Color = Color3.fromRGB(255,0,0)
+        return b
+    end)
+    if success then
+        espBoxes[player] = box
+    end
 end
 
 local function removeESP(player)
     if espBoxes[player] then
-        espBoxes[player]:Remove()
+        pcall(function()
+            espBoxes[player]:Remove()
+        end)
         espBoxes[player] = nil
     end
 end
@@ -266,7 +274,9 @@ ESPTab:CreateToggle({
     Callback = function(Value)
         espEnabled = Value
         if not Value then
-            for _,v in pairs(espBoxes) do v:Remove() end
+            for _,v in pairs(espBoxes) do
+                pcall(function() v:Remove() end)
+            end
             table.clear(espBoxes)
         end
     end
@@ -276,7 +286,7 @@ Players.PlayerAdded:Connect(createESP)
 Players.PlayerRemoving:Connect(removeESP)
 
 RunService.RenderStepped:Connect(function()
-    if not espEnabled then return end
+    if not espEnabled or not Drawing then return end
 
     for _,player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -285,7 +295,7 @@ RunService.RenderStepped:Connect(function()
             end
 
             local hrp = player.Character.HumanoidRootPart
-            local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+            local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(hrp.Position)
 
             local box = espBoxes[player]
             if onScreen then
