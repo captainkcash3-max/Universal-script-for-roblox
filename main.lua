@@ -82,6 +82,112 @@ end
 
 local MainTab = Window:CreateTab("Main", 4483362458)
 local RandomTab = Window:CreateTab("Random  (add anything)", 4483362458)
+local TimeTab = Window:CreateTab("Time Perception", 4483362458)
+
+-- bullet time  code start --
+-- variables --
+local bulletTime = false
+local bulletSpeed = 0.3 -- 0.3 = 30% speed, 1 = normal, these are the settings
+local normalFOV = workspace.CurrentCamera.FieldOfView
+local bulletFOV = 80
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+
+local originalAnimationSpeeds = {}
+local soundPitchConnections = {}
+
+
+local function startBulletTime()
+    bulletTime = true
+
+
+    if LocalPlayer.Character then
+        for _, anim in pairs(LocalPlayer.Character:GetDescendants()) do
+            if anim:IsA("AnimationTrack") then
+                originalAnimationSpeeds[anim] = anim:PlaySpeed
+                anim:AdjustSpeed(anim.PlaySpeed * bulletSpeed)
+            end
+        end
+    end
+
+
+    for _, sound in pairs(workspace:GetDescendants()) do
+        if sound:IsA("Sound") then
+            local conn
+            conn = sound:GetPropertyChangedSignal("PlaybackSpeed"):Connect(function()
+                sound.PlaybackSpeed = sound.PlaybackSpeed * bulletSpeed
+            end)
+            soundPitchConnections[sound] = conn
+            sound.PlaybackSpeed = sound.PlaybackSpeed * bulletSpeed
+        end
+    end
+
+
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = LocalPlayer.Character.Humanoid.WalkSpeed * bulletSpeed
+        LocalPlayer.Character.Humanoid.JumpPower = LocalPlayer.Character.Humanoid.JumpPower * bulletSpeed
+    end
+
+    workspace.CurrentCamera.FieldOfView = bulletFOV
+end
+
+
+local function stopBulletTime()
+        bulletTime = false
+    
+    for anim, speed in pairs(originalAnimationSpeeds) do
+        if anim then anim:AdjustSpeed(speed) end
+    end
+    originalAnimationSpeeds = {}
+
+
+    for sound, conn in pairs(soundPitchConnections) do
+        if conn then conn:Disconnect() end
+        if sound then sound.PlaybackSpeed = 1 end
+    end
+    soundPitchConnections = {}
+
+
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        LocalPlayer.Character.Humanoid.JumpPower = 50
+    end
+
+   
+    workspace.CurrentCamera.FieldOfView = normalFOV
+end
+
+
+TimeTab:CreateToggle({
+    Name = "Bullet Time",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then
+            startBulletTime()
+        else
+            stopBulletTime()
+        end
+    end
+})
+
+-- Optional: Add slider for speed
+TimeTab:CreateSlider({
+    Name = "Bullet Time Speed",
+    Range = {0.1, 1},
+    Increment = 0.05,
+    CurrentValue = 0.3,
+    Callback = function(Value)
+        bulletSpeed = Value
+        if bulletTime then
+            stopBulletTime()
+            startBulletTime()
+        end
+    end
+})
+-- bullet time code end (named it that) --
 -- WalkSpeed
 MainTab:CreateSlider({
     Name = "WalkSpeed",
