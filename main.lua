@@ -23,6 +23,13 @@ local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local camera = workspace.CurrentCamera
 
+local MainTab = Window:CreateTab("Main", 4483362458)
+local RandomTab = Window:CreateTab("Random (add anything)", 4483362458)
+local TimeTab = Window:CreateTab("Time Perception", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+local ESPTab = Window:CreateTab("ESP", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
+
 local flying = false
 local flySpeed = 50
 local bodyGyro, bodyVelocity
