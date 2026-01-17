@@ -264,7 +264,7 @@ function ToggleCutsceneSkip(state)
     if state then SkipCutsceneNow() end
 end
 
--- PlayerTab
+-- PlayerTab Toggles/Sliders
 PlayerTab:CreateSlider({
     Name = "WalkSpeed",
     Range = {16, 200},
@@ -293,14 +293,7 @@ PlayerTab:CreateSlider({
     end
 })
 
-PlayerTab:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Callback = function(Value)
-        infJump = Value
-    end
-})
-
+-- Fly Toggle
 PlayerTab:CreateToggle({
     Name = "Fly",
     CurrentValue = false,
@@ -309,6 +302,18 @@ PlayerTab:CreateToggle({
     end
 })
 
+-- Fly Speed Slider
+PlayerTab:CreateSlider({
+    Name = "Fly Speed",
+    Range = {10, 300},
+    Increment = 5,
+    CurrentValue = flySpeed,
+    Callback = function(Value)
+        flySpeed = Value
+    end
+})
+
+-- Noclip Toggle
 PlayerTab:CreateToggle({
     Name = "Noclip",
     CurrentValue = false,
@@ -317,6 +322,16 @@ PlayerTab:CreateToggle({
     end
 })
 
+-- Infinite Jump
+PlayerTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Callback = function(Value)
+        infJump = Value
+    end
+})
+
+-- Rejoin / Reset
 PlayerTab:CreateButton({
     Name = "Rejoin Server",
     Callback = function()
@@ -441,7 +456,7 @@ if Rayfield and Rayfield.Notify then
     })
 end
 
--- Infinite jump
+-- Infinite Jump
 UIS.JumpRequest:Connect(function()
     if infJump then
         pcall(function()
