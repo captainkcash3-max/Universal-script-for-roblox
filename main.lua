@@ -269,7 +269,22 @@ function ToggleCutsceneSkip(state)
     end
 end
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
+function IsEnemy(player)
+    if not player then return false end
+    if not LocalPlayer.Team or not player.Team then
+        return true -- if teams don't exist, treat as enemy
+    end
+    return player.Team ~= LocalPlayer.Team
+end
+
+for _, plr in ipairs(Players:GetPlayers()) do
+    if plr ~= LocalPlayer and IsEnemy(plr) then
+        -- SHOW this player (enemy)
+
+        createESP(plr
 
 
 PlayerTab:CreateSlider({
