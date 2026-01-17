@@ -84,8 +84,8 @@ local MainTab = Window:CreateTab("Main", 4483362458)
 local RandomTab = Window:CreateTab("Random  (add anything)", 4483362458)
 local TimeTab = Window:CreateTab("Time Perception", 4483362458)
 
--- bullet time  code start --
--- variables --
+-- bullet time code start
+-- variables
 local bulletTime = false
 local bulletSpeed = 0.3 -- 0.3 = 30% speed, 1 = normal, these are the settings
 local normalFOV = workspace.CurrentCamera.FieldOfView
