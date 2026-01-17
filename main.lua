@@ -2,6 +2,10 @@
 
 
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+if not Rayfield then
+    warn("Rayfield failed to load!")
+    return
+end
 
 
 local Window = Rayfield:CreateWindow({
@@ -13,6 +17,7 @@ local Window = Rayfield:CreateWindow({
         FolderName = "UniversalRayfield",
         FileName = "Config"
     },
+    
     Discord = { Enabled = false },
     KeySystem = false
 })
