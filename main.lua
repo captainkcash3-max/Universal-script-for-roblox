@@ -32,6 +32,7 @@ local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local bodyGyro, bodyVelocity
+local flyConnection 
 
 local function startFly()
     local char = player.Character
@@ -53,8 +54,9 @@ local function startFly()
 
     flying = true
 
-    RunService.RenderStepped:Connect(function()
-        if not flying then return end
+    
+    flyConnection = RunService.RenderStepped:Connect(function()
+        if not flying or not hrp or not hrp.Parent then return end
 
         local moveDir = Vector3.zero
         if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir += camera.CFrame.LookVector end
@@ -77,12 +79,13 @@ local function stopFly()
     flying = false
     if bodyGyro then bodyGyro:Destroy() end
     if bodyVelocity then bodyVelocity:Destroy() end
+
+    
+    if flyConnection then
+        flyConnection:Disconnect()
+        flyConnection = nil
+    end
 end
-
-
-local MainTab = Window:CreateTab("Main", 4483362458)
-local RandomTab = Window:CreateTab("Random  (add anything)", 4483362458)
-local TimeTab = Window:CreateTab("Time Perception", 4483362458)
 
 -- bullet time code start
 -- variables
