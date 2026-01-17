@@ -234,6 +234,41 @@ player.CharacterAdded:Connect(function(char)
         applyGodmode(char)
     end
 end)
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local skipEnabled = false
+
+function SkipCutsceneNow()
+    -- Unlock camera
+    camera.CameraType = Enum.CameraType.Custom
+
+    -- Remove cutscene GUIs
+    for _, gui in ipairs(player.PlayerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and gui.Name:lower():find("cutscene") then
+            gui:Destroy()
+        end
+    end
+
+    -- Stop animations
+    if player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+                track:Stop()
+            end
+        end
+    end
+end
+
+function ToggleCutsceneSkip(state)
+    skipEnabled = state
+    if state then
+        SkipCutsceneNow()
+    end
+end
+
 
 
 
@@ -248,6 +283,14 @@ PlayerTab:CreateSlider({
                 LocalPlayer.Character.Humanoid.WalkSpeed = Value
             end
         end)
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Skip Cutscenes",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleCutsceneSkip(Value)
     end
 })
 
