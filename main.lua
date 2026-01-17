@@ -166,6 +166,71 @@ function ToggleNoclip(state)
         disableNoclip()
     end
 end
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local godmode = false
+local healthConnection
+
+local function applyGodmode(character)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    humanoid.MaxHealth = math.huge
+    humanoid.Health = humanoid.MaxHealth
+
+    if healthConnection then
+        healthConnection:Disconnect()
+    end
+
+    healthConnection = humanoid.HealthChanged:Connect(function()
+        if godmode then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end)
+end
+
+local function enableGodmode()
+    godmode = true
+
+    if player.Character then
+        applyGodmode(player.Character)
+    end
+end
+
+local function disableGodmode()
+    godmode = false
+
+    if healthConnection then
+        healthConnection:Disconnect()
+        healthConnection = nil
+    end
+
+    local char = player.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.MaxHealth = 100
+            hum.Health = hum.MaxHealth
+        end
+    end
+end
+
+function ToggleGodmode(state)
+    if state then
+        enableGodmode()
+    else
+        disableGodmode()
+    end
+end
+
+player.CharacterAdded:Connect(function(char)
+    if godmode then
+        task.wait(0.5)
+        applyGodmode(char)
+    end
+end)
+
 
 
 PlayerTab:CreateSlider({
@@ -179,6 +244,14 @@ PlayerTab:CreateSlider({
                 LocalPlayer.Character.Humanoid.WalkSpeed = Value
             end
         end)
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Godmode",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleGodmode(Value)
     end
 })
 
