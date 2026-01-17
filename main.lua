@@ -240,6 +240,55 @@ LocalPlayer.CharacterAdded:Connect(function(char)
         end
     end
 end)
+-- ESP
+local function createESP(player)
+    if not Drawing or not Drawing.new or player == LocalPlayer then return end
+    -- Only show if player is NOT on your team
+    if player.Team == LocalPlayer.Team then return end
+    local success, box = pcall(function()
+        local b = Drawing.new("Square")
+        b.Thickness = 1
+        b.Filled = false
+        b.Color = Color3.fromRGB(255,0,0)
+        return b
+    end)
+    if success then espBoxes[player] = box end
+end
+
+local function removeESP(player)
+    if espBoxes[player] then
+        pcall(function() espBoxes[player]:Remove() end)
+        espBoxes[player] = nil
+    end
+end
+
+Players.PlayerAdded:Connect(createESP)
+Players.PlayerRemoving:Connect(removeESP)
+
+RunService.RenderStepped:Connect(function()
+    if not espEnabled or not Drawing or not Drawing.new then return end
+    for _,player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Only show ESP if player is NOT on your team
+            if player.Team ~= LocalPlayer.Team then
+                if not espBoxes[player] then createESP(player) end
+                local hrp = player.Character.HumanoidRootPart
+                local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+                local box = espBoxes[player]
+                if onScreen then
+                    box.Visible = true
+                    box.Size = Vector2.new(50, 70)
+                    box.Position = Vector2.new(pos.X - 25, pos.Y - 35)
+                else
+                    box.Visible = false
+                end
+            else
+                removeESP(player) -- remove if on your team
+            end
+        end
+    end
+end)
+
 
 -- Cutscene Skip
 local skipEnabled = false
