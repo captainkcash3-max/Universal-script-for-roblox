@@ -1,12 +1,8 @@
-
-
-
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 if not Rayfield then
     warn("Rayfield failed to load!")
     return
 end
-
 
 local Window = Rayfield:CreateWindow({
     Name = "Universal Admin Panel",
@@ -17,30 +13,23 @@ local Window = Rayfield:CreateWindow({
         FolderName = "UniversalRayfield",
         FileName = "Config"
     },
-    
     Discord = { Enabled = false },
     KeySystem = false
 })
-
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
--- Fly variables
+local camera = workspace.CurrentCamera
+
 local flying = false
 local flySpeed = 50
-
-local player = game.Players.LocalPlayer
-local camera = workspace.CurrentCamera
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
 local bodyGyro, bodyVelocity
-local flyConnection 
+local flyConnection
 
 local function startFly()
-    local char = player.Character
+    local char = LocalPlayer.Character
     if not char then return end
 
     local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -59,7 +48,6 @@ local function startFly()
 
     flying = true
 
-    
     flyConnection = RunService.RenderStepped:Connect(function()
         if not flying or not hrp or not hrp.Parent then return end
 
@@ -84,43 +72,31 @@ local function stopFly()
     flying = false
     if bodyGyro then bodyGyro:Destroy() end
     if bodyVelocity then bodyVelocity:Destroy() end
-
-    
     if flyConnection then
         flyConnection:Disconnect()
         flyConnection = nil
     end
 end
 
--- bullet time code start
--- variables
 local bulletTime = false
-local bulletSpeed = 0.3 -- 0.3 = 30% speed, 1 = normal, these are the settings
+local bulletSpeed = 0.3
 local normalFOV = workspace.CurrentCamera.FieldOfView
 local bulletFOV = 80
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
 
 local originalAnimationSpeeds = {}
 local soundPitchConnections = {}
 
-
 local function startBulletTime()
     bulletTime = true
-
 
     if LocalPlayer.Character then
         for _, anim in pairs(LocalPlayer.Character:GetDescendants()) do
             if anim:IsA("AnimationTrack") then
-                originalAnimationSpeeds[anim] = anim:PlaySpeed
+                originalAnimationSpeeds[anim] = anim.PlaySpeed
                 anim:AdjustSpeed(anim.PlaySpeed * bulletSpeed)
             end
         end
     end
-
 
     for _, sound in pairs(workspace:GetDescendants()) do
         if sound:IsA("Sound") then
@@ -133,7 +109,6 @@ local function startBulletTime()
         end
     end
 
-
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = LocalPlayer.Character.Humanoid.WalkSpeed * bulletSpeed
         LocalPlayer.Character.Humanoid.JumpPower = LocalPlayer.Character.Humanoid.JumpPower * bulletSpeed
@@ -142,15 +117,13 @@ local function startBulletTime()
     workspace.CurrentCamera.FieldOfView = bulletFOV
 end
 
-
 local function stopBulletTime()
-        bulletTime = false
-    
+    bulletTime = false
+
     for anim, speed in pairs(originalAnimationSpeeds) do
         if anim then anim:AdjustSpeed(speed) end
     end
     originalAnimationSpeeds = {}
-
 
     for sound, conn in pairs(soundPitchConnections) do
         if conn then conn:Disconnect() end
@@ -158,16 +131,13 @@ local function stopBulletTime()
     end
     soundPitchConnections = {}
 
-
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = 16
         LocalPlayer.Character.Humanoid.JumpPower = 50
     end
 
-   
     workspace.CurrentCamera.FieldOfView = normalFOV
 end
-
 
 TimeTab:CreateToggle({
     Name = "Bullet Time",
@@ -181,7 +151,6 @@ TimeTab:CreateToggle({
     end
 })
 
--- Optional: Add slider for speed
 TimeTab:CreateSlider({
     Name = "Bullet Time Speed",
     Range = {0.1, 1},
@@ -195,8 +164,7 @@ TimeTab:CreateSlider({
         end
     end
 })
--- bullet time code end (named it that) --
--- WalkSpeed
+
 MainTab:CreateSlider({
     Name = "WalkSpeed",
     Range = {16, 200},
@@ -204,11 +172,12 @@ MainTab:CreateSlider({
     CurrentValue = 16,
     Callback = function(Value)
         pcall(function()
-            LocalPlayer.Character.Humanoid.WalkSpeed = Value
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = Value
+            end
         end)
     end
 })
-
 
 RandomTab:CreateToggle({
     Name = "Fly",
@@ -222,8 +191,6 @@ RandomTab:CreateToggle({
     end
 })
 
-
--- JumpPower
 MainTab:CreateSlider({
     Name = "JumpPower",
     Range = {50, 300},
@@ -231,12 +198,13 @@ MainTab:CreateSlider({
     CurrentValue = 50,
     Callback = function(Value)
         pcall(function()
-            LocalPlayer.Character.Humanoid.JumpPower = Value
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.JumpPower = Value
+            end
         end)
     end
 })
 
--- Infinite Jump
 local infJump = false
 MainTab:CreateToggle({
     Name = "Infinite Jump",
@@ -249,17 +217,15 @@ MainTab:CreateToggle({
 UIS.JumpRequest:Connect(function()
     if infJump then
         pcall(function()
-            LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
         end)
     end
 end)
 
-------------------------------------------------
--- Player Tab
-------------------------------------------------
 local PlayerTab = Window:CreateTab("Player", 4483362458)
 
--- Rejoin
 PlayerTab:CreateButton({
     Name = "Rejoin Server",
     Callback = function()
@@ -267,7 +233,6 @@ PlayerTab:CreateButton({
     end
 })
 
--- Reset Character
 PlayerTab:CreateButton({
     Name = "Reset Character",
     Callback = function()
@@ -275,16 +240,12 @@ PlayerTab:CreateButton({
     end
 })
 
-------------------------------------------------
--- ESP Tab (Basic)
-------------------------------------------------
 local ESPTab = Window:CreateTab("ESP", 4483362458)
-
 local espEnabled = false
 local espBoxes = {}
 
 local function createESP(player)
-    if player == LocalPlayer then return end
+    if not Drawing or player == LocalPlayer then return end
     local box = Drawing.new("Square")
     box.Thickness = 1
     box.Filled = false
@@ -324,7 +285,7 @@ RunService.RenderStepped:Connect(function()
             end
 
             local hrp = player.Character.HumanoidRootPart
-            local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(hrp.Position)
+            local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
 
             local box = espBoxes[player]
             if onScreen then
@@ -338,20 +299,21 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-------------------------------------------------
--- Settings Tab
-------------------------------------------------
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
 SettingsTab:CreateButton({
     Name = "Destroy UI",
     Callback = function()
-        Rayfield:Destroy()
+        if Rayfield and Rayfield.Destroy then
+            Rayfield:Destroy()
+        end
     end
 })
 
-Rayfield:Notify({
-    Title = "Loaded!",
-    Content = "Universal Rayfield script loaded successfully.",
-    Duration = 5
-})
+if Rayfield and Rayfield.Notify then
+    Rayfield:Notify({
+        Title = "Loaded!",
+        Content = "Universal Rayfield script loaded successfully.",
+        Duration = 5
+    })
+end
