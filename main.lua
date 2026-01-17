@@ -182,7 +182,7 @@ TimeTab:CreateToggle({
 
 TimeTab:CreateSlider({
     Name = "Bullet Time Speed",
-    Range = {0.1, 1},
+    Range = {0.1, 5},
     Increment = 0.05,
     CurrentValue = 0.3,
     Callback = function(Value)
