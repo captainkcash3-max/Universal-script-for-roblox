@@ -313,6 +313,51 @@ function ToggleCutsceneSkip(state)
     if state then SkipCutsceneNow() end
 end
 
+local invisible = false
+
+local function setCharacterInvisible(state)
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    for _, obj in ipairs(char:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            obj.Transparency = state and 1 or 0
+            if obj:FindFirstChildOfClass("Decal") then
+                obj:FindFirstChildOfClass("Decal").Transparency = state and 1 or 0
+            end
+        elseif obj:IsA("Accessory") and obj:FindFirstChild("Handle") then
+            obj.Handle.Transparency = state and 1 or 0
+        end
+    end
+end
+
+local function enableInvisible()
+    invisible = true
+    setCharacterInvisible(true)
+end
+
+local function disableInvisible()
+    invisible = false
+    setCharacterInvisible(false)
+end
+
+function ToggleInvisible(state)
+    if state then
+        enableInvisible()
+    else
+        disableInvisible()
+    end
+end
+
+-- Reapply on respawn
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.3)
+    if invisible then
+        setCharacterInvisible(true)
+    end
+end)
+
+
 -- PlayerTab Toggles/Sliders
 PlayerTab:CreateSlider({
     Name = "WalkSpeed",
@@ -339,6 +384,14 @@ PlayerTab:CreateSlider({
                 LocalPlayer.Character.Humanoid.JumpPower = Value
             end
         end)
+    end
+})
+
+PlayerTab:CreateToggle({
+    Name = "Invisible",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleInvisible(Value)
     end
 })
 
