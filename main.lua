@@ -203,6 +203,23 @@ TimeTab:CreateToggle({
     Callback=function(v) if v then startBullet() else stopBullet() end end
 })
 
+TimeTab:CreateSlider({
+    Name = "Bullet Time Speed",
+    Range = {0.05, 1},
+    Increment = 0.05,
+    CurrentValue = bulletSpeed,
+    Callback = function(v)
+        bulletSpeed = v
+        if bulletTime then
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.WalkSpeed = 16 * bulletSpeed
+                hum.JumpPower = 50 * bulletSpeed
+            end
+        end
+    end
+})
+
 NothingTab:CreateParagraph({
     Title = "Nothing",
     Content = "This tab intentionally does absolutely nothing."
@@ -215,6 +232,6 @@ SettingsTab:CreateButton({
 
 Rayfield:Notify({
     Title="Loaded",
-    Content="Everything loaded. Infinite Jump cooldown = 1s.",
+    Content="Everything loaded.",
     Duration=5
 })
