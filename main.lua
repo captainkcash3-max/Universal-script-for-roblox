@@ -313,41 +313,48 @@ function ToggleCutsceneSkip(state)
     if state then SkipCutsceneNow() end
 end
 
-local invisible = false
+-- Invisible
+local RS = game:GetService("ReplicatedStorage")
 
-local function setCharacterInvisible(state)
-    local char = LocalPlayer.Character
-    if not char then return end
+local remote = RS:WaitForChild("InvisibleMorphToggle")
+local toggled = {}
 
-    for _, obj in ipairs(char:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            obj.Transparency = state and 1 or 0
-            if obj:FindFirstChildOfClass("Decal") then
-                obj:FindFirstChildOfClass("Decal").Transparency = state and 1 or 0
-            end
-        elseif obj:IsA("Accessory") and obj:FindFirstChild("Handle") then
-            obj.Handle.Transparency = state and 1 or 0
+local function setInvisible(character, state)
+    for _, v in ipairs(character:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Transparency = state and 1 or 0
+            v.CanCollide = not state
+        elseif v:IsA("Decal") then
+            v.Transparency = state and 1 or 0
         end
     end
 end
 
-local function enableInvisible()
-    invisible = true
-    setCharacterInvisible(true)
-end
+local function removeMorphs(player)
+    local char = player.Character
+    if not char then return end
 
-local function disableInvisible()
-    invisible = false
-    setCharacterInvisible(false)
-end
-
-function ToggleInvisible(state)
-    if state then
-        enableInvisible()
-    else
-        disableInvisible()
+    for _, v in ipairs(char:GetChildren()) do
+        if v.Name == "Morph" or v:GetAttribute("IsMorph") then
+            v:Destroy()
+        end
     end
 end
+
+remote.OnServerEvent:Connect(function(player)
+    toggled[player] = not toggled[player]
+    local state = toggled[player]
+
+    local char = player.Character
+    if not char then return end
+
+    setInvisible(char, state)
+
+    if not state then
+        
+        removeMorphs(player)
+    end
+end)
 
 -- Reapply on respawn
 LocalPlayer.CharacterAdded:Connect(function()
