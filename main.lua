@@ -29,7 +29,7 @@ local TimeTab = Window:CreateTab("Time")
 local SettingsTab = Window:CreateTab("Settings")
 
 --------------------------------------------------
--- INVISIBILITY (CLIENT SAFE)
+-- INVISIBILITY
 --------------------------------------------------
 local invisible = false
 
@@ -88,12 +88,7 @@ local function startFly()
         if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
         if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,1,0) end
 
-        if dir.Magnitude > 0 then
-            vel.Velocity = dir.Unit * flySpeed
-        else
-            vel.Velocity = Vector3.zero
-        end
-
+        vel.Velocity = dir.Magnitude > 0 and dir.Unit * flySpeed or Vector3.zero
         gyro.CFrame = Camera.CFrame
     end)
 end
@@ -122,10 +117,7 @@ end)
 --------------------------------------------------
 -- GODMODE
 --------------------------------------------------
-local godmode = false
-
 local function ToggleGodmode(state)
-    godmode = state
     if LocalPlayer.Character then
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if hum then
@@ -145,24 +137,20 @@ local normalFOV = Camera.FieldOfView
 local function startBullet()
     bulletTime = true
     Camera.FieldOfView = 80
-    if LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed *= bulletSpeed
-            hum.JumpPower *= bulletSpeed
-        end
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed *= bulletSpeed
+        hum.JumpPower *= bulletSpeed
     end
 end
 
 local function stopBullet()
     bulletTime = false
     Camera.FieldOfView = normalFOV
-    if LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = 16
-            hum.JumpPower = 50
-        end
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = 16
+        hum.JumpPower = 50
     end
 end
 
@@ -179,13 +167,22 @@ local function SkipCutscene()
 end
 
 --------------------------------------------------
--- INFINITE JUMP
+-- INFINITE JUMP (0.5s COOLDOWN)
 --------------------------------------------------
 local infJump = false
+local jumpCooldown = false
+
 UIS.JumpRequest:Connect(function()
-    if infJump and LocalPlayer.Character then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
-    end
+    if not infJump or jumpCooldown then return end
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    jumpCooldown = true
+    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+
+    task.delay(0.5, function()
+        jumpCooldown = false
+    end)
 end)
 
 --------------------------------------------------
@@ -214,7 +211,7 @@ PlayerTab:CreateToggle({
 })
 
 PlayerTab:CreateToggle({
-    Name = "Infinite Jump",
+    Name = "Infinite Jump (0.5s Delay)",
     Callback = function(v) infJump = v end
 })
 
@@ -235,11 +232,13 @@ TimeTab:CreateToggle({
 
 SettingsTab:CreateButton({
     Name = "Destroy UI",
-    Callback = function() Rayfield:Destroy() end
+    Callback = function()
+        Rayfield:Destroy()
+    end
 })
 
 Rayfield:Notify({
     Title = "Loaded",
-    Content = "Everything loaded correctly.",
+    Content = "Infinite Jump now has a 0.5s cooldown.",
     Duration = 5
 })
