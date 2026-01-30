@@ -178,7 +178,7 @@ UIS.JumpRequest:Connect(function()
     jumpCooldown = true
     hum:ChangeState(Enum.HumanoidStateType.Jumping)
 
-    task.delay(1, function()
+    task.delay(0.7, function()
         jumpCooldown = false
     end)
 end)
