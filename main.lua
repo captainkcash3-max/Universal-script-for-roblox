@@ -23,16 +23,17 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 -- Tabs
-local MainTab = Window:CreateTab("Main")
-local PlayerTab = Window:CreateTab("Player")
-local TimeTab = Window:CreateTab("Time")
-local SettingsTab = Window:CreateTab("Settings")
+local MainTab = Window:CreateTab("Main", 4483362458)
+local RandomTab = Window:CreateTab("Random", 4483362458)
+local TimeTab = Window:CreateTab("Time Perception", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+local NothingTab = Window:CreateTab("Nothing", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
 --------------------------------------------------
--- INVISIBILITY
+-- INVISIBLE
 --------------------------------------------------
 local invisible = false
-
 local function setInvisible(char, state)
     for _,v in ipairs(char:GetDescendants()) do
         if v:IsA("BasePart") then
@@ -78,7 +79,6 @@ local function startFly()
     vel.MaxForce = Vector3.new(9e9,9e9,9e9)
 
     flying = true
-
     flyConn = RunService.RenderStepped:Connect(function()
         local dir = Vector3.zero
         if UIS:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
@@ -118,12 +118,10 @@ end)
 -- GODMODE
 --------------------------------------------------
 local function ToggleGodmode(state)
-    if LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.MaxHealth = state and math.huge or 100
-            hum.Health = hum.MaxHealth
-        end
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.MaxHealth = state and math.huge or 100
+        hum.Health = hum.MaxHealth
     end
 end
 
@@ -167,7 +165,7 @@ local function SkipCutscene()
 end
 
 --------------------------------------------------
--- INFINITE JUMP (0.5s COOLDOWN)
+-- INFINITE JUMP (1s COOLDOWN)
 --------------------------------------------------
 local infJump = false
 local jumpCooldown = false
@@ -180,7 +178,7 @@ UIS.JumpRequest:Connect(function()
     jumpCooldown = true
     hum:ChangeState(Enum.HumanoidStateType.Jumping)
 
-    task.delay(0.5, function()
+    task.delay(1, function()
         jumpCooldown = false
     end)
 end)
@@ -188,57 +186,35 @@ end)
 --------------------------------------------------
 -- UI ELEMENTS
 --------------------------------------------------
-PlayerTab:CreateToggle({
-    Name = "Invisible",
-    Callback = ToggleInvisible
-})
-
-PlayerTab:CreateToggle({
-    Name = "Fly",
-    Callback = function(v) if v then startFly() else stopFly() end end
-})
-
+PlayerTab:CreateToggle({ Name="Invisible", Callback=ToggleInvisible })
+PlayerTab:CreateToggle({ Name="Fly", Callback=function(v) if v then startFly() else stopFly() end end })
 PlayerTab:CreateSlider({
-    Name = "Fly Speed",
-    Range = {20,300},
-    CurrentValue = flySpeed,
-    Callback = function(v) flySpeed = v end
+    Name="Fly Speed", Range={20,300}, CurrentValue=flySpeed,
+    Callback=function(v) flySpeed=v end
 })
+PlayerTab:CreateToggle({ Name="Noclip", Callback=function(v) noclip=v end })
+PlayerTab:CreateToggle({ Name="Infinite Jump (1s Delay)", Callback=function(v) infJump=v end })
 
-PlayerTab:CreateToggle({
-    Name = "Noclip",
-    Callback = function(v) noclip = v end
-})
-
-PlayerTab:CreateToggle({
-    Name = "Infinite Jump (0.5s Delay)",
-    Callback = function(v) infJump = v end
-})
-
-MainTab:CreateToggle({
-    Name = "Godmode",
-    Callback = ToggleGodmode
-})
-
-MainTab:CreateButton({
-    Name = "Skip Cutscene Now",
-    Callback = SkipCutscene
-})
+MainTab:CreateToggle({ Name="Godmode", Callback=ToggleGodmode })
+MainTab:CreateButton({ Name="Skip Cutscenes", Callback=SkipCutscene })
 
 TimeTab:CreateToggle({
-    Name = "Bullet Time",
-    Callback = function(v) if v then startBullet() else stopBullet() end end
+    Name="Bullet Time",
+    Callback=function(v) if v then startBullet() else stopBullet() end end
+})
+
+NothingTab:CreateParagraph({
+    Title = "Nothing",
+    Content = "This tab intentionally does absolutely nothing."
 })
 
 SettingsTab:CreateButton({
-    Name = "Destroy UI",
-    Callback = function()
-        Rayfield:Destroy()
-    end
+    Name="Destroy UI",
+    Callback=function() Rayfield:Destroy() end
 })
 
 Rayfield:Notify({
-    Title = "Loaded",
-    Content = "Infinite Jump now has a 0.5s cooldown.",
-    Duration = 5
+    Title="Loaded",
+    Content="Everything loaded. Infinite Jump cooldown = 1s.",
+    Duration=5
 })
